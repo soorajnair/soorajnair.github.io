@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triggering Azure DevOps Pipelines with Incoming Webhooks</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 2rem; }
+    h1, h2, h3 { color: #333; }
+    img { max-width: 100%; height: auto; }
+    code { background-color: #f5f5f5; padding: 0.2rem 0.4rem; border-radius: 0.2rem; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+<h1>Triggering Azure DevOps Pipelines with Incoming Webhooks</h1>
+
+<p>Incoming webhooks allow you to trigger Azure DevOps pipelines remotely by sending HTTP requests. This feature is useful for integrating Azure DevOps with other services or automating specific actions based on external events.</p>
+
+<h2>Prerequisites</h2>
+
+<ul>
+  <li>An active Azure DevOps organization and project.</li>
+  <li>At least one pipeline (YAML file) configured in your Azure DevOps project that you want to trigger using the webhook.</li>
+</ul>
+
+<h2>Create an Incoming Webhook</h2>
+
+<ol>
+  <li>Navigate to your project's settings in Azure DevOps:</li>
+  <img src="https://i.imgur.com/5Z8Dp1M.png" alt="Project Settings">
+
+  <li>Click on "Webhooks" under the "Pipelines" section.</li>
+
+  <li>Click the "Generate webhook" button, enter a name for your webhook, and optionally set a secret token to enhance security.</li>
+
+  <li>Note down the generated webhook URL. You'll use this URL to send HTTP requests and trigger your pipelines.</li>
+</ol>
+
+<h2>Configure the Webhook Payload</h2>
+
+<p>The webhook URL accepts a JSON payload containing data that can be used to customize the pipeline run. Here's an example of a basic payload:</p>
+
+<pre><code>{
+  "request": {
+    "id": "12345678-90ab-cdef-1234-567890abcdef",
+    "type": "runPipeline"
+  },
+  "resource": {
+    "repository": {
+      "name": "MyRepo",
+      "type": "Git",
+      "url": "https://dev.azure.com/&lt;organization&gt;/&lt;project&gt;/_apis/git/repositories/MyRepo"
+    },
+    "project": {
+      "id": "12345678-90ab-cdef-1234-567890abcdef",
+      "name": "&lt;project-name&gt;"
+    }
+  },
+  "detailedStatus": {},
+  "triggerInfo": {
+    "queueId": 1,
+    "source": "webhook"
+  }
+}</code></pre>
+
+<p>In this example, replace <code>&lt;organization&gt;</code>, <code>&lt;project&gt;</code>, and <code>MyRepo</code> with your Azure DevOps organization name, project name, and repository name, respectively. The <code>id</code> field in the <code>request</code> object should be a unique identifier for each trigger request.</p>
+
+<p>You can also include additional data like variables or demands to control specific aspects of your pipeline run:</p>
+
+<pre><code>{
+  "request": {
+    "id": "12345678-90ab-cdef-1234-567890abcdef",
+    "type": "runPipeline",
+    "variables": {
+      "myVariable": "value"
+    },
+    "demands": [
+      {
+        "operator": "equals",
+        "key": "Agent.Name",
+        "value": "MyCustomAgent"
+      }
+    ]
+  },
+  // ... rest of the payload
+}</code></pre>
+
+<h2>Send an HTTP Request to Trigger a Pipeline</h2>
+
+<p>Now that you have your webhook URL and configured payload, send an HTTP request (usually <code>POST</code>) with the JSON data as the body. You can use various tools or programming languages to send this request:</p>
+
+<ul>
+  <li><strong>cURL:</strong> <code>curl -X POST -H "Content-Type: application/json" -d @payload.json &lt;webhook-url&gt;</code></li>
+  <li><strong>PowerShell:</strong> <code>Invoke-RestMethod -Uri &lt;webhook-url&gt; -Method Post -Body (Get-Content payload.json) -Headers @{"Content-Type"="application/json"}</code></li>
+  <li><strong>Python:</strong> Use the <code>requests</code> library to send a <code>POST</code> request with the JSON data as the body.</li>
+</ul>
+
+<p>If you set a secret token when creating the webhook, make sure to include it as a header in your HTTP request with the name <code>Authorization</code>.</p>
+
+<h2>Verifying Webhook Triggers</h2>
+
+<ol>
+  <li>Navigate to the "Pipelines" page of your Azure DevOps project.</li>
+  <img src="https://i.imgur.com/9T07VXF.png" alt="Azure Pipelines">
+
+  <li>Look for the pipeline run that corresponds to your trigger request. The pipeline should have started running based on the data provided in your payload.</li>
+</ol>
+
+<p>That's it! You now know how to create incoming webhooks and use them to trigger Azure DevOps pipelines remotely. This feature allows you to integrate Azure DevOps with other services or automate specific actions based on external events.</p>
+
+<p><strong>Happy automating!</strong></p>
+
+</body>
+</html>
